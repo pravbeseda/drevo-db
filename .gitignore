@@ -1,3 +1,10 @@
+.hg
+.hgignore
+DB/*
+.settings
+*.class
+DB5v/*
+
 # Compiled class file
 *.class
 
