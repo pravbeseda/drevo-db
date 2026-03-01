@@ -16,10 +16,10 @@ import com.nothome.delta.text.Delta;
 public class MakeDB2 {
 	public final static String pathDB = "./DB/";
 	public final static String textBase = pathDB + "drevo.txt";
-	public final static String mainBase = pathDB + "main.175.ru.drevoinfo.obb";
-	public final static String patchBase = pathDB + "patch.218.ru.drevoinfo.obb";
+	public final static String mainBase = pathDB + "main.229.ru.drevoinfo.obb";
+	public final static String patchBase = pathDB + "patch.247.ru.drevoinfo.obb";
 	public final static String oldBase = mainBase;
-	// public final static String oldBase = null;
+	//public final static String oldBase = null;
 
 	public static void main(String[] args) throws ClassNotFoundException, SQLException, IOException {
 		System.out.println("Start!");
