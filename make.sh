@@ -90,7 +90,7 @@ javac -cp ./lib/javaxdelta-2.0.1.jar ./src/Utils.java ./src/MakeDB3.java
 echo "Запуск сборки..."
 OUTPUT=$(java -Dfile.encoding=utf8 -cp ".:./src/:./lib/javaxdelta-2.0.1.jar:./lib/trove-2.1.0.jar:./lib/sqlite-jdbc-3.7.2.jar" MakeDB3 "$MODE" "$MAIN_VERSION" "$PATCH_VERSION" 2>&1 | tee /dev/stderr)
 
-# --- Запись результата в test.txt ---
+# --- Запись результата в build-history.txt ---
 STATS_LINE=$(echo "$OUTPUT" | grep "^Count:")
 if [ -n "$STATS_LINE" ]; then
     # Размер patch-файла в мегабайтах (округлённый)
@@ -103,8 +103,8 @@ if [ -n "$STATS_LINE" ]; then
     fi
 
     TODAY=$(date "+%-d.%m.%Y")
-    echo "${MAIN_VERSION}/${PATCH_VERSION}	${TODAY} - ${STATS_LINE} - ${SIZE_MB}" >> "$ROOT_DIR/test.txt"
+    echo "${MAIN_VERSION}/${PATCH_VERSION}	${TODAY} - ${STATS_LINE} - ${SIZE_MB}" >> "$ROOT_DIR/build-history.txt"
     echo ""
-    echo "Записано в test.txt:"
-    tail -1 "$ROOT_DIR/test.txt"
+    echo "Записано в build-history.txt:"
+    tail -1 "$ROOT_DIR/build-history.txt"
 fi
