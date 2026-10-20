@@ -3,6 +3,7 @@ DB/*
 !DB/download.sh
 
 .gradle/
+.kotlin/
 build/
 .idea/
 *.class

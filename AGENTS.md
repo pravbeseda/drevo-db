@@ -33,7 +33,8 @@ Until `docs/format.md` exists, the format is described in drevo-app's `.github/t
 
 ## Build & test
 
-JDK 21; versions live in `gradle/libs.versions.toml` alone, and Renovate (`renovate.json5`) updates them.
+JDK 21; versions live in `gradle/libs.versions.toml` alone, and Renovate (`renovate.json5`) updates them. Updates
+of `sqlite-jdbc` and `javaxdelta` are not automerged: merge one only after the dump comparison below.
 
 ```bash
 ./gradlew build            # compile, unit tests, spotlessCheck — what CI runs
