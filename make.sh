@@ -79,16 +79,15 @@ case "$CONFIRM" in
     [nN]) echo "Отменено."; exit 0 ;;
 esac
 
-# --- Компиляция ---
+# --- Build the generator ---
 echo ""
-echo "Компиляция..."
+echo "Building the generator..."
 cd "$ROOT_DIR"
-rm -f src/MakeDB3.class
-javac -cp ./lib/javaxdelta-2.0.1.jar ./src/Utils.java ./src/MakeDB3.java
+./gradlew --quiet installDist
 
-# --- Запуск ---
+# --- Run ---
 echo "Запуск сборки..."
-OUTPUT=$(java -Dfile.encoding=utf8 -cp ".:./src/:./lib/javaxdelta-2.0.1.jar:./lib/trove-2.1.0.jar:./lib/sqlite-jdbc-3.7.2.jar" MakeDB3 "$MODE" "$MAIN_VERSION" "$PATCH_VERSION" 2>&1 | tee /dev/stderr)
+OUTPUT=$(build/install/drevo-db/bin/drevo-db "$MODE" "$MAIN_VERSION" "$PATCH_VERSION" 2>&1 | tee /dev/stderr)
 
 # --- Запись результата в build-history.txt ---
 STATS_LINE=$(echo "$OUTPUT" | grep "^Count:")

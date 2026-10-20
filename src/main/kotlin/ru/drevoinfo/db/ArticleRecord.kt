@@ -1,0 +1,56 @@
+package ru.drevoinfo.db
+
+const val ALL_ARTICLES_TOPIC = 99
+
+private const val MAIN_PAGE_ID = 4L
+
+// Topics from 13 up are service topics; an article in any of them stays out of "all articles".
+private const val FIRST_SERVICE_TOPIC = 13
+
+/**
+ * One line of the site export `drevo.txt` — `id<drevo>title<drevo>topics<drevo>toc<drevo>body` —
+ * in the shape it is stored in the database.
+ */
+data class ArticleRecord(
+    val id: Long,
+    val title: String,
+    val topics: List<Int>,
+    val text: String,
+) {
+    companion object {
+        fun parse(line: String): ArticleRecord {
+            val fields = line.split("<drevo>")
+            val id = fields[0].javaTrim().toLong()
+            val title = fields[1].javaTrim()
+            val topics =
+                fields[2]
+                    .javaTrim()
+                    .split(",")
+                    .filter { it.isNotEmpty() }
+                    .map { it.toInt() }
+            val inAllArticles = id == MAIN_PAGE_ID || topics.none { it >= FIRST_SERVICE_TOPIC }
+            return ArticleRecord(
+                id = id,
+                // shortcut: the space only makes the main page sort first, and it breaks prefix search; drevo-db#2 removes it
+                title = if (id == MAIN_PAGE_ID) " $title" else title,
+                topics = if (inAllArticles) topics + ALL_ARTICLES_TOPIC else topics,
+                text = toc(fields[3].javaTrim()) + " <drevo> " + fields[4].javaTrim(),
+            )
+        }
+
+        /** Turns the export's HTML table of contents into `#anchor|title` entries, a nested one as `#_anchor|title`. */
+        private fun toc(html: String): String =
+            html
+                .replace("<div class=\"indent\"> ", "#")
+                .replace("</div>", "")
+                .replace("<a href=\"", "")
+                .replace("\">", "|")
+                .replace("</a>", "")
+                .replace("##", "#_")
+                .replace("   ", " ")
+                .replace("  ", " ")
+    }
+}
+
+/** Java's `String.trim()`, which strips only code points up to U+0020: Kotlin's `trim()` would also strip a no-break space. */
+internal fun String.javaTrim(): String = trim { it <= ' ' }

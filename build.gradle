@@ -1,0 +1,34 @@
+plugins {
+    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.spotless)
+    id 'application'
+}
+
+kotlin {
+    jvmToolchain(21)
+}
+
+dependencies {
+    implementation libs.javaxdelta
+    implementation libs.sqlite.jdbc
+    testImplementation libs.junit
+}
+
+application {
+    mainClass = 'ru.drevoinfo.db.MainKt'
+}
+
+// Kotlin goes through ktlint, with the style set in .editorconfig, the same as in drevo-app.
+spotless {
+    kotlin {
+        target 'src/**/*.kt'
+        ktlint(libs.versions.ktlint.get())
+        endWithNewline()
+    }
+    format 'gradleScripts', {
+        target '*.gradle'
+        leadingTabsToSpaces(4)
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+}
