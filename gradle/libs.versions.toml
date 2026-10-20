@@ -1,0 +1,17 @@
+[versions]
+javaxdelta = "2.0.1"
+junit = "4.13.2"
+kotlin = "2.4.20"
+ktlint = "1.8.0"
+spotless = "8.10.3"
+sqlite-jdbc = "3.53.4.0"
+
+[libraries]
+# Brings trove:trove from its own POM: Delta reaches it through Checksum.
+javaxdelta = { module = "com.nothome:javaxdelta", version.ref = "javaxdelta" }
+junit = { module = "junit:junit", version.ref = "junit" }
+sqlite-jdbc = { module = "org.xerial:sqlite-jdbc", version.ref = "sqlite-jdbc" }
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }

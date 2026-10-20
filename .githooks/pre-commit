@@ -1,0 +1,21 @@
+#!/bin/sh
+# Two gates, both refusable with: git commit --no-verify
+
+# 1. Refuse commits made directly on main; work on a branch and open a pull request.
+# stderr is discarded because symbolic-ref fails on a detached HEAD, an ordinary
+# state during a rebase.
+git symbolic-ref --short HEAD 2>/dev/null | grep -qx main && {
+    echo "pre-commit: refusing to commit on main." >&2
+    echo "Create a branch first:  git checkout -b <name>" >&2
+    echo "Deliberate exception:   git commit --no-verify" >&2
+    exit 1
+}
+
+# 2. Refuse unformatted code; `./gradlew spotlessApply` fixes it.
+# Spotless checks the working tree, not the staged change; CI runs the same check.
+./gradlew spotlessCheck --quiet || {
+    echo "pre-commit: formatting check failed (see above)." >&2
+    echo "Fix it:                 ./gradlew spotlessApply" >&2
+    echo "Deliberate exception:   git commit --no-verify" >&2
+    exit 1
+}
