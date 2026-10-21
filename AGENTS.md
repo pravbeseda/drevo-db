@@ -25,6 +25,12 @@ repository root — it reads and writes `./DB/` relative to the working director
 `DB/patch.<N>.ru.drevoinfo.obb` against the newest `main`; `full` writes a new `main` and `patch` pair. `DB/` is
 git-ignored except `download.sh`.
 
+`make.sh` ends with `publish.sh`, which can also be run on its own from the repository root. It publishes the
+newest pair as the GitHub Release `db-<main>-<patch>` after a confirmation, with `patch`, `stat.txt`, `SHA256SUMS`
+and the `Count:` line as notes. `main` (~320 MB) is attached only when no earlier release holds it, and the notes
+name the one that does. `SHA256SUMS` always covers both databases. The script refuses a pair that
+`build-history.txt` does not record and a tag that already exists. `PublishScriptTest` runs it against a fake `gh`.
+
 `build-history.txt` is a log, not test output: `make.sh` appends the `Count:` line and the patch size after every
 build, and the maintainer reads the patch's growth there to decide when to rebuild `main` with `full`. Commit the new
 line with the next change.

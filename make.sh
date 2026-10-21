@@ -107,3 +107,6 @@ if [ -n "$STATS_LINE" ]; then
     echo "Записано в build-history.txt:"
     tail -1 "$ROOT_DIR/build-history.txt"
 fi
+
+# --- Publish ---
+./publish.sh
