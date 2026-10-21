@@ -1,0 +1,2 @@
+# Fixture files are compared byte for byte by both clients: no line-ending conversion.
+fixtures/** -text

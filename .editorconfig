@@ -20,3 +20,8 @@ indent_size = 2
 [*.md]
 # Two trailing spaces are a hard line break in Markdown.
 trim_trailing_whitespace = false
+
+[fixtures/**]
+# Expected texts are compared byte for byte by both clients.
+insert_final_newline = false
+trim_trailing_whitespace = false

@@ -21,7 +21,6 @@ data class ArticleRecord(
         fun parse(line: String): ArticleRecord {
             val fields = line.split("<drevo>")
             val id = fields[0].javaTrim().toLong()
-            val title = fields[1].javaTrim()
             val topics =
                 fields[2]
                     .javaTrim()
@@ -31,8 +30,7 @@ data class ArticleRecord(
             val inAllArticles = id == MAIN_PAGE_ID || topics.none { it >= FIRST_SERVICE_TOPIC }
             return ArticleRecord(
                 id = id,
-                // shortcut: the space only makes the main page sort first, and it breaks prefix search; drevo-db#2 removes it
-                title = if (id == MAIN_PAGE_ID) " $title" else title,
+                title = fields[1].javaTrim(),
                 topics = if (inAllArticles) topics + ALL_ARTICLES_TOPIC else topics,
                 text = toc(fields[3].javaTrim()) + " <drevo> " + fields[4].javaTrim(),
             )
