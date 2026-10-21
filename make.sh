@@ -37,9 +37,9 @@ fi
 
 # --- Автоопределение версий ---
 # Находим текущий номер main
-CURRENT_MAIN=$(ls "$DB_DIR"/main.*.ru.drevoinfo.obb 2>/dev/null | sed 's/.*main\.\([0-9]*\)\..*/\1/' | sort -n | tail -1)
+CURRENT_MAIN=$(ls "$DB_DIR"/main.*.ru.drevoinfo.obb 2>/dev/null | sed 's/.*main\.\([0-9]*\)\..*/\1/' | sort -n | tail -1 || true)
 # Находим текущий номер patch
-CURRENT_PATCH=$(ls "$DB_DIR"/patch.*.ru.drevoinfo.obb 2>/dev/null | sed 's/.*patch\.\([0-9]*\)\..*/\1/' | sort -n | tail -1)
+CURRENT_PATCH=$(ls "$DB_DIR"/patch.*.ru.drevoinfo.obb 2>/dev/null | sed 's/.*patch\.\([0-9]*\)\..*/\1/' | sort -n | tail -1 || true)
 
 if [ -z "$CURRENT_MAIN" ]; then
     echo "Ошибка: не найден файл main.*.ru.drevoinfo.obb в $DB_DIR"
@@ -107,3 +107,6 @@ if [ -n "$STATS_LINE" ]; then
     echo "Записано в build-history.txt:"
     tail -1 "$ROOT_DIR/build-history.txt"
 fi
+
+# --- Publish ---
+./publish.sh
