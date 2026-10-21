@@ -29,26 +29,30 @@ git-ignored except `download.sh`.
 build, and the maintainer reads the patch's growth there to decide when to rebuild `main` with `full`. Commit the new
 line with the next change.
 
-Until `docs/format.md` exists, the format is described in drevo-app's `.github/tasks/ios-port.md` ("Format facts").
+The format both clients read is defined in `docs/format.md`.
 
 ## Build & test
 
-JDK 21; versions live in `gradle/libs.versions.toml` alone, and Renovate (`renovate.json5`) updates them. Updates
-of `sqlite-jdbc` and `javaxdelta` are not automerged: merge one only after the dump comparison below.
+JDK 21; versions live in `gradle/libs.versions.toml` alone, and Renovate (`renovate.json5`) updates them. An update
+that changes what the generator writes fails `FixturesTest`, so a green Renovate PR is safe to automerge.
 
 ```bash
 ./gradlew build            # compile, unit tests, spotlessCheck — what CI runs
 ./gradlew spotlessApply    # format; ktlint style comes from .editorconfig, shared with drevo-app
+./gradlew generateFixtures # rebuild fixtures/ after an intended change to the output
 git config core.hooksPath .githooks   # once per checkout: refuses commits on main, runs spotlessCheck
 ```
 
 New code is Kotlin. Logic lives in plain classes without JDBC and is written test-first with plain JUnit 4
-(`org.junit.Assert`, no mocking library); `Main.kt` holds only the JDBC wiring.
+(`org.junit.Assert`, no mocking library); `Generator.kt` holds the JDBC wiring and `Main.kt` the command line.
 
 ## Changing what the generator writes
 
-Both clients read these files, so every change to the generator is checked against the real export: build a patch
-before and after the change in a scratch directory (a `DB/` holding a symlink to `DB/drevo.txt` and a copy of the
+Both clients read these files, so a change to what the generator writes is a change to `docs/format.md`, made in the
+same pull request. `FixturesTest` compares `fixtures/` with a fresh build, its schema, rows and header fields alike:
+an intended change runs `./gradlew generateFixtures` and commits the diff, which is what reviewers and both clients
+see. The fixtures hold a handful of articles, so a change to parsing is also checked against the real export: build a
+patch before and after the change in a scratch directory (a `DB/` holding a symlink to `DB/drevo.txt` and a copy of the
 newest `main`, then `build/install/drevo-db/bin/drevo-db patch <main> 900` from there) and compare
 `sqlite3 <file> .dump` of the two. Compare dumps, never file bytes: the page layout changes with every `sqlite-jdbc`
 version. A difference is either the intended change or a bug.

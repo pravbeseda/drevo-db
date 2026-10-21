@@ -13,15 +13,4 @@
   // Gradle version catalog and so knows only the workflow's actions. osv.dev
   // covers Maven.
   osvVulnerabilityAlerts: true,
-
-  packageRules: [
-    {
-      // These two shape the bytes the clients read, and no test opens a
-      // database yet, so a green build says nothing about them. Their updates
-      // wait for the dump comparison AGENTS.md describes. Remove this rule once
-      // CI compares the fixture dumps (phase 2 of drevo-app's iOS port plan).
-      matchPackageNames: ['org.xerial:sqlite-jdbc', 'com.nothome:javaxdelta'],
-      automerge: false,
-    },
-  ],
 }
