@@ -1,9 +1,7 @@
 package ru.drevoinfo.db
 
-import org.sqlite.SQLiteConfig
 import java.io.File
 import java.sql.Connection
-import java.sql.DriverManager
 import java.util.Base64
 
 /**
@@ -34,8 +32,8 @@ object Fixtures {
         Generator.build(export, main, patch, full = false)
         val records = export.readLines(Charsets.UTF_8).filter { it.javaTrim().isNotEmpty() }.map(ArticleRecord::parse)
 
-        open(main).use { mainDb ->
-            open(patch).use { patchDb ->
+        connect(main, readOnly = true).use { mainDb ->
+            connect(patch, readOnly = true).use { patchDb ->
                 val lines =
                     records.map { record ->
                         val patchRow = row(patchDb, "SELECT ziptext, isfulltext FROM tblTexts WHERE _id = ?", record.id)
@@ -51,9 +49,6 @@ object Fixtures {
         expected.mkdirs()
         records.forEach { expected.resolve("${it.id}.txt").writeText(it.text, Charsets.UTF_8) }
     }
-
-    private fun open(file: File): Connection =
-        DriverManager.getConnection("jdbc:sqlite:$file", SQLiteConfig().apply { setReadOnly(true) }.toProperties())
 
     private fun row(
         connection: Connection,

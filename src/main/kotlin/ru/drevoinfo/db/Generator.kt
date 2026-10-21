@@ -128,7 +128,7 @@ private class Writer(
     }
 }
 
-private fun connect(
+internal fun connect(
     file: File,
     readOnly: Boolean = false,
 ): Connection {

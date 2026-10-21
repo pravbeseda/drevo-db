@@ -44,7 +44,8 @@ git config core.hooksPath .githooks   # once per checkout: refuses commits on ma
 ```
 
 New code is Kotlin. Logic lives in plain classes without JDBC and is written test-first with plain JUnit 4
-(`org.junit.Assert`, no mocking library); `Generator.kt` holds the JDBC wiring and `Main.kt` the command line.
+(`org.junit.Assert`, no mocking library); `Generator.kt` holds the JDBC wiring, `Main.kt`
+the command line, and `Fixtures.kt` builds `fixtures/` on top of `Generator`.
 
 ## Changing what the generator writes
 

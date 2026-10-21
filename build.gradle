@@ -34,7 +34,7 @@ spotless {
 }
 
 tasks.register('generateFixtures', JavaExec) {
-    description = 'Rebuilds fixtures/ from fixtures/source/; FixturesTest fails until the result is committed.'
+    description = 'Rebuilds fixtures/ from fixtures/source/; FixturesTest fails while fixtures/ differs from a fresh build.'
     classpath = sourceSets.main.runtimeClasspath
     mainClass = 'ru.drevoinfo.db.FixturesKt'
     args 'fixtures/source', 'fixtures'
