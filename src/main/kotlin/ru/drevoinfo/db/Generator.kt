@@ -2,6 +2,8 @@ package ru.drevoinfo.db
 
 import org.sqlite.SQLiteConfig
 import java.io.File
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
 import java.sql.Connection
 import java.sql.DriverManager
 
@@ -15,6 +17,8 @@ object Generator {
     /**
      * Builds the databases from [export]. `full` writes a new [main] with every text and a [patch] holding the index
      * alone; otherwise only [patch] is written, its texts as changes against the existing [main].
+     *
+     * Each file is written as `<name>.tmp` and renamed only once it is complete, so a failed build leaves none behind.
      */
     fun build(
         export: File,
@@ -22,8 +26,23 @@ object Generator {
         patch: File,
         full: Boolean,
     ): BuildStats {
-        patch.delete()
-        if (full) main.delete()
+        // main goes first: a new patch without its main would be released against the old main.
+        val temps = (if (full) listOf(main, patch) else listOf(patch)).associateWith { File("${it.path}.tmp").apply { delete() } }
+        try {
+            val stats = write(export, temps[main] ?: main, temps.getValue(patch), full)
+            temps.forEach { (target, temp) -> Files.move(temp.toPath(), target.toPath(), StandardCopyOption.ATOMIC_MOVE) }
+            return stats
+        } finally {
+            temps.values.forEach { it.delete() }
+        }
+    }
+
+    private fun write(
+        export: File,
+        main: File,
+        patch: File,
+        full: Boolean,
+    ): BuildStats {
         connect(patch).use { patchDb ->
             patchDb.execute("CREATE TABLE IF NOT EXISTS tblSlovnik(_id INTEGER, title TEXT PRIMARY KEY ASC)")
             patchDb.execute("CREATE TABLE IF NOT EXISTS tblTopics(article_id INTEGER, topic INTEGER, PRIMARY KEY ([article_id], [topic]))")
@@ -38,7 +57,15 @@ object Generator {
                 val stats =
                     Writer(patchDb, texts, base).use { writer ->
                         export.bufferedReader(Charsets.UTF_8).useLines { lines ->
-                            lines.filter { it.javaTrim().isNotEmpty() }.forEach(writer::write)
+                            lines.forEachIndexed { index, line ->
+                                if (line.javaTrim().isEmpty()) return@forEachIndexed
+                                try {
+                                    writer.write(line)
+                                } catch (e: Exception) {
+                                    val id = line.substringBefore("<drevo>").javaTrim()
+                                    throw IllegalStateException("${export.name} line ${index + 1}, _id $id: ${e.message}", e)
+                                }
+                            }
                         }
                         writer.stats
                     }

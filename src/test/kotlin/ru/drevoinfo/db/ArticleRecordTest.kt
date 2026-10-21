@@ -1,6 +1,7 @@
 package ru.drevoinfo.db
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertThrows
 import org.junit.Test
 
 class ArticleRecordTest {
@@ -52,6 +53,13 @@ class ArticleRecordTest {
         val record = ArticleRecord.parse("5<drevo>А<drevo> <drevo> <drevo>Текст")
 
         assertEquals(listOf(ALL_ARTICLES_TOPIC), record.topics)
+    }
+
+    @Test
+    fun rejectsLineWithFewerThanFiveFields() {
+        val error = assertThrows(IllegalArgumentException::class.java) { ArticleRecord.parse("5<drevo>А<drevo>1") }
+
+        assertEquals("expected 5 <drevo>-separated fields, found 3", error.message)
     }
 
     @Test
