@@ -4,6 +4,8 @@ const val ALL_ARTICLES_TOPIC = 99
 
 private const val MAIN_PAGE_ID = 4L
 
+private const val FIELD_COUNT = 5
+
 // Topics from 13 up are service topics; an article in any of them stays out of "all articles".
 private const val FIRST_SERVICE_TOPIC = 13
 
@@ -20,6 +22,7 @@ data class ArticleRecord(
     companion object {
         fun parse(line: String): ArticleRecord {
             val fields = line.split("<drevo>")
+            require(fields.size >= FIELD_COUNT) { "expected $FIELD_COUNT <drevo>-separated fields, found ${fields.size}" }
             val id = fields[0].javaTrim().toLong()
             val topics =
                 fields[2]

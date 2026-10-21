@@ -1,6 +1,9 @@
 package ru.drevoinfo.db
 
+import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertThrows
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
@@ -48,6 +51,49 @@ class GeneratorTest {
         assertEquals(BuildStats(all = 2, added = 0, patched = 1), stats)
         assertEquals(listOf(6L to 0), rows(patch, "SELECT _id, isfulltext FROM tblTexts ORDER BY _id") { it.getLong(1) to it.getInt(2) })
         assertEquals(FORMAT_VERSION, pragma(patch, "user_version"))
+    }
+
+    @Test
+    fun failedFullBuildLeavesNoDatabaseBehind() {
+        val db = temp.newFolder("DB")
+
+        assertThrows(IllegalStateException::class.java) {
+            Generator.build(
+                export("5<drevo>А<drevo>1<drevo> <drevo>$text", "6<drevo>Б<drevo>1,x<drevo> <drevo>$text"),
+                db.resolve("main.sqlite"),
+                db.resolve("patch.sqlite"),
+                full = true,
+            )
+        }
+
+        assertEquals(emptyList<String>(), db.list()!!.toList())
+    }
+
+    @Test
+    fun failedPatchBuildLeavesMainAsItWasAndNoPatch() {
+        val db = temp.newFolder("DB")
+        val main = db.resolve("main.sqlite")
+        Generator.build(export("5<drevo>А<drevo>1<drevo> <drevo>$text"), main, temp.root.resolve("full-patch.sqlite"), full = true)
+        val mainBytes = main.readBytes()
+
+        assertThrows(IllegalStateException::class.java) {
+            Generator.build(export("5<drevo>А<drevo>1<drevo> <drevo>$text", "6<drevo>Б"), main, db.resolve("patch.sqlite"), full = false)
+        }
+
+        assertEquals(listOf("main.sqlite"), db.list()!!.toList())
+        assertArrayEquals(mainBytes, main.readBytes())
+    }
+
+    @Test
+    fun failureNamesTheExportLineAndArticleId() {
+        val export = export("5<drevo>А<drevo>1<drevo> <drevo>$text", "", "6<drevo>Б<drevo>1,x<drevo> <drevo>$text")
+
+        val error =
+            assertThrows(IllegalStateException::class.java) {
+                Generator.build(export, temp.root.resolve("main.sqlite"), temp.root.resolve("patch.sqlite"), full = true)
+            }
+
+        assertTrue(error.message, error.message!!.startsWith("${export.name} line 3, _id 6: "))
     }
 
     private fun export(vararg lines: String): File = temp.newFile().apply { writeText(lines.joinToString("\n"), Charsets.UTF_8) }
