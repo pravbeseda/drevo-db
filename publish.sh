@@ -9,7 +9,7 @@ set -eo pipefail
 DB_DIR="$PWD/DB"
 
 newest() {
-    ls "$DB_DIR"/"$1".*.ru.drevoinfo.obb 2>/dev/null | sed "s/.*$1\.\([0-9]*\)\..*/\1/" | sort -n | tail -1
+    ls "$DB_DIR"/"$1".*.ru.drevoinfo.obb 2>/dev/null | sed "s/.*$1\.\([0-9]*\)\..*/\1/" | sort -n | tail -1 || true
 }
 
 MAIN=$(newest main)

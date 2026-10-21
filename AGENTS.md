@@ -29,7 +29,8 @@ git-ignored except `download.sh`.
 newest pair as the GitHub Release `db-<main>-<patch>` after a confirmation, with `patch`, `stat.txt`, `SHA256SUMS`
 and the `Count:` line as notes. `main` (~320 MB) is attached only when no earlier release holds it, and the notes
 name the one that does. `SHA256SUMS` always covers both databases. The script refuses a pair that
-`build-history.txt` does not record and a tag that already exists. `PublishScriptTest` runs it against a fake `gh`.
+`build-history.txt` does not record and a release that already exists; a tag left behind by a deleted release is
+reused. `PublishScriptTest` runs it against a fake `gh`.
 
 `build-history.txt` is a log, not test output: `make.sh` appends the `Count:` line and the patch size after every
 build, and the maintainer reads the patch's growth there to decide when to rebuild `main` with `full`. Commit the new

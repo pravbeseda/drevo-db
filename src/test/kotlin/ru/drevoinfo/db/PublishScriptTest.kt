@@ -138,6 +138,19 @@ class PublishScriptTest {
     }
 
     @Test
+    fun namesTheMissingDatabaseInAnEmptyDbFolder() {
+        temp.root
+            .resolve("DB")
+            .listFiles()!!
+            .forEach { it.delete() }
+
+        val run = run()
+
+        assertNotEquals(0, run.exitCode)
+        assertTrue(run.output, run.output.contains("no main or patch database"))
+    }
+
+    @Test
     fun publishesNothingWhenTheAnswerIsNo() {
         val run = run(answer = "n")
 
