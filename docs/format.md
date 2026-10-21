@@ -9,7 +9,7 @@ tests.
 | File | Holds |
 |---|---|
 | `main.<N>.ru.drevoinfo.obb` | Article texts. Rebuilt rarely (`make.sh full`), ~320 MB. |
-| `patch.<M>.ru.drevoinfo.obb` | The index (titles, topics) and the texts changed since `main.<N>`. Rebuilt monthly (`make.sh patch`), 10–20 MB. |
+| `patch.<M>.ru.drevoinfo.obb` | The index (titles, topics) and the texts changed since `main.<N>`. Rebuilt monthly (`make.sh patch`); ~8 MB right after a full build, growing to ~55 MB before `main` is rebuilt. |
 
 The names are Android's expansion-file names; an iOS bundle keeps the same two files under constant names
 (`main.sqlite`, `patch.sqlite`). A patch is valid only with the `main` it was built against, so whatever publishes a

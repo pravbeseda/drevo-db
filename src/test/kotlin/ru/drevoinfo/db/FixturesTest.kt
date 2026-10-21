@@ -58,7 +58,8 @@ class FixturesTest {
         assertTrue("nested table of contents", rows.any { expected(it.id).contains("#_") })
         assertTrue("non-BMP characters in a delta", rows.any { it.isFullText == 0 && expected(it.id).any(Char::isSurrogate) })
         val inAllArticles = query(committed.resolve(Fixtures.PATCH), "SELECT article_id FROM tblTopics WHERE topic = 99")
-        assertTrue("main page in all articles", "4" in inAllArticles)
+        val mainPageTopics = query(committed.resolve(Fixtures.PATCH), "SELECT topic FROM tblTopics WHERE article_id = 4")
+        assertTrue("main page in all articles despite a service topic", "4" in inAllArticles && mainPageTopics.any { it.toInt() in 13..98 })
         assertTrue("article left out of all articles", rows.any { it.id.toString() !in inAllArticles })
     }
 
