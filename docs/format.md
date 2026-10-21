@@ -26,9 +26,10 @@ Both are SQLite 3 databases with a page size of 1024 bytes, opened read-only by 
 | `0` | Every file published before the version existed. Format 1, except that article `4`'s title starts with a space. |
 | `1` | This document. |
 
-A client reads `0` and `1` and refuses any higher version with a message that the app needs an update. Titles come
-from `patch` alone, so a client that trims titles reads a version-1 patch over a version-0 main and both kinds of patch
-alike. A change that an existing client would misread raises the version.
+A client reads `0` and `1` and refuses to ship a database in any higher version. Each client opens only the databases
+released with it, so the check runs when a release is built, not on the device: on Android `release-new-db.sh`
+stops the build. Titles come from `patch` alone, so a client that trims titles reads a version-1 patch over a
+version-0 main and both kinds of patch alike. A change that an existing client would misread raises the version.
 
 ## `patch`
 
