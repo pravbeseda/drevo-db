@@ -1,6 +1,6 @@
 # Database format
 
-The contract between this generator and the readers (drevo-app on Android, drevo-ios). The generator owns it: a
+The contract between this generator and the readers (drevo-android, drevo-ios). The generator owns it: a
 change to what it writes is a change to this file, and the fixtures below make the change visible to both clients'
 tests.
 
