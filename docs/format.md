@@ -23,13 +23,12 @@ Both are SQLite 3 databases with a page size of 1024 bytes, opened read-only by 
 
 | `user_version` | Meaning |
 |---|---|
-| `0` | Every file published before the version existed. Format 1, except that article `4`'s title starts with a space. |
+| `0` | Every file published before the version existed. Same as format 1. |
 | `1` | This document. |
 
 A client reads `0` and `1` and refuses to ship a database in any higher version. Each client opens only the databases
 released with it, so the check runs when a release is built, not on the device: on Android `release-new-db.sh`
-stops the build. Titles come from `patch` alone, so a client that trims titles reads a version-1 patch over a
-version-0 main and both kinds of patch alike. A change that an existing client would misread raises the version.
+stops the build. A change that an existing client would misread raises the version.
 
 ## `patch`
 
@@ -42,8 +41,9 @@ CREATE INDEX title ON tblSlovnik(title)
 ```
 
 - `tblSlovnik` is the index: one row per article. Titles are unique and in upper case, as the site exports them;
-  clients upper-case a search before matching. Titles carry no sort hints: putting the main page first in a list is the
-  client's job.
+  clients upper-case a search before matching. Article `4` (the main page) is stored as ` ГЛАВНАЯ СТРАНИЦА`, with a
+  leading space, so that `ORDER BY title` lists it first on the title index; clients trim it before showing it, and a
+  prefix search for it has to allow the space.
 - `tblTopics` puts an article in topics: `1` persons, `2` organisations, `3` places, `4` terms, `5` church, `6` bible,
   `7` books, `8` saints, `9` holidays, `10` church-slavonic, `11` documents; `13` and up are service topics.
   Topic `99` ("all articles") holds every article in no service topic, plus article `4` always.

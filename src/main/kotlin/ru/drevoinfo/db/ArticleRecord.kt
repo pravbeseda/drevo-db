@@ -24,6 +24,7 @@ data class ArticleRecord(
             val fields = line.split("<drevo>")
             require(fields.size >= FIELD_COUNT) { "expected $FIELD_COUNT <drevo>-separated fields, found ${fields.size}" }
             val id = fields[0].javaTrim().toLong()
+            val title = fields[1].javaTrim()
             val topics =
                 fields[2]
                     .javaTrim()
@@ -33,7 +34,8 @@ data class ArticleRecord(
             val inAllArticles = id == MAIN_PAGE_ID || topics.none { it >= FIRST_SERVICE_TOPIC }
             return ArticleRecord(
                 id = id,
-                title = fields[1].javaTrim(),
+                // The space sorts the main page first under ORDER BY title, which keeps the title index usable.
+                title = if (id == MAIN_PAGE_ID) " $title" else title,
                 topics = if (inAllArticles) topics + ALL_ARTICLES_TOPIC else topics,
                 text = toc(fields[3].javaTrim()) + " <drevo> " + fields[4].javaTrim(),
             )

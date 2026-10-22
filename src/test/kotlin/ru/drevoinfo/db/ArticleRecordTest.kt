@@ -14,10 +14,10 @@ class ArticleRecordTest {
     }
 
     @Test
-    fun mainPageTitleIsStoredAsItIs() {
+    fun mainPageTitleGetsLeadingSpaceSoItSortsFirst() {
         val record = ArticleRecord.parse("4<drevo>ГЛАВНАЯ СТРАНИЦА<drevo>13<drevo> <drevo>Текст")
 
-        assertEquals("ГЛАВНАЯ СТРАНИЦА", record.title)
+        assertEquals(" ГЛАВНАЯ СТРАНИЦА", record.title)
     }
 
     @Test
