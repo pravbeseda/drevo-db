@@ -13,7 +13,7 @@ All checked out side by side under `~/Work/drevo/`.
 | `drevo-yii` | The site (legacy PHP) and the backend |
 | `drevo-web` | The new web front end (Angular) |
 | `drevo-db` | This repository: export → `main` + `patch` SQLite databases |
-| `drevo-app` | Android reader; ships the databases as OBB expansion files, its `release-new-db.sh` reads them from `DB/` here |
+| `drevo-android` | Android reader; ships the databases as OBB expansion files, its `release-new-db.sh` reads them from `DB/` here |
 | `drevo-ios` | iOS reader, planned; bundles the same two files |
 
 ## Pipeline
@@ -45,7 +45,7 @@ that changes what the generator writes fails `FixturesTest`, so a green Renovate
 
 ```bash
 ./gradlew build            # compile, unit tests, spotlessCheck — what CI runs
-./gradlew spotlessApply    # format; ktlint style comes from .editorconfig, shared with drevo-app
+./gradlew spotlessApply    # format; ktlint style comes from .editorconfig, shared with drevo-android
 ./gradlew generateFixtures # rebuild fixtures/ after an intended change to the output
 git config core.hooksPath .githooks   # once per checkout: refuses commits on main, runs spotlessCheck
 ```

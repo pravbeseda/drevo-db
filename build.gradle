@@ -18,7 +18,7 @@ application {
     mainClass = 'ru.drevoinfo.db.MainKt'
 }
 
-// Kotlin goes through ktlint, with the style set in .editorconfig, the same as in drevo-app.
+// Kotlin goes through ktlint, with the style set in .editorconfig, the same as in drevo-android.
 spotless {
     kotlin {
         target 'src/**/*.kt'
