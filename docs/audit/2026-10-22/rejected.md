@@ -1,0 +1,3 @@
+# Rejected — audit 2026-10-22
+
+- **duplication:** `make.sh` and `publish.sh` each carry their own copy of the "newest database number" lookup (`make.sh:40`, `make.sh:42`, `publish.sh:11-13`) — growth gate: a shared sourced helper adds a file and a `source` line per script and removes no concept, since the file-name rule is also written in `Main.kt:27-28`, `make.sh:45-73,96` and `publish.sh:21-22`; and the claimed consequence does not hold, because the two lookups never look for the same pair and a drift makes `publish.sh` stop with an error (`publish.sh:17-19`, `26-30`) before anything is published. The in-script half survives as LEAN-3 — by verifier
