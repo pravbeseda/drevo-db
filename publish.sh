@@ -75,7 +75,7 @@ esac
 
 gh release create "$TAG" --title "$TAG" --notes-file "$WORK_DIR/notes.md" "${FILES[@]}"
 
-if git diff --quiet -- build-history.txt; then
+if git diff --quiet HEAD -- build-history.txt; then
     exit 0
 fi
 BRANCH=$(git symbolic-ref --short HEAD 2>/dev/null || true)

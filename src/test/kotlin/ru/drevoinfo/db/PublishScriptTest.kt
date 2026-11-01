@@ -52,6 +52,7 @@ class PublishScriptTest {
         mainRelease: String = "",
         branch: String = "main",
         historyChanged: Boolean = true,
+        historyStaged: Boolean = false,
     ): Run {
         val process =
             ProcessBuilder("bash", script.path)
@@ -64,6 +65,7 @@ class PublishScriptTest {
                     environment()["FAKE_GH_MAIN_RELEASE"] = mainRelease
                     environment()["FAKE_GIT_BRANCH"] = branch
                     environment()["FAKE_GIT_CHANGED"] = if (historyChanged) "1" else ""
+                    environment()["FAKE_GIT_STAGED"] = if (historyStaged) "1" else ""
                 }.start()
         process.outputStream.bufferedWriter().use { it.write(answer + "\n") }
         val output = process.inputStream.bufferedReader().readText()
@@ -196,6 +198,13 @@ class PublishScriptTest {
     }
 
     @Test
+    fun commitsABuildHistoryThatIsAlreadyStaged() {
+        run(historyStaged = true)
+
+        assertTrue(gitCalls().toString(), committed())
+    }
+
+    @Test
     fun commitsNothingWhenNothingIsPublished() {
         run(answer = "n")
 
@@ -249,14 +258,21 @@ class PublishScriptTest {
             esac
             """.trimIndent()
 
-        /** `symbolic-ref` prints FAKE_GIT_BRANCH; `diff --quiet` reports a change when FAKE_GIT_CHANGED is set; every call is recorded. */
+        /**
+         * `symbolic-ref` prints FAKE_GIT_BRANCH; `diff --quiet` reports a change when FAKE_GIT_CHANGED is set, except that a
+         * change already staged (FAKE_GIT_STAGED) is seen only against HEAD; every call is recorded.
+         */
         val FAKE_GIT =
             """
             #!/bin/bash
             echo "${'$'}*" >> "${'$'}FAKE_GH_LOG/git-calls"
             case "${'$'}1" in
                 symbolic-ref) echo "${'$'}FAKE_GIT_BRANCH" ;;
-                diff) [ -z "${'$'}FAKE_GIT_CHANGED" ] ;;
+                diff)
+                    case " ${'$'}* " in
+                        *" HEAD "*) [ -z "${'$'}FAKE_GIT_CHANGED" ] ;;
+                        *) [ -z "${'$'}FAKE_GIT_CHANGED" ] || [ -n "${'$'}FAKE_GIT_STAGED" ] ;;
+                    esac ;;
                 *) true ;;
             esac
             """.trimIndent()
