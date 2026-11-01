@@ -13,7 +13,10 @@ tests.
 
 The names are Android's expansion-file names; an iOS bundle keeps the same two files under constant names
 (`main.sqlite`, `patch.sqlite`). A patch is valid only with the `main` it was built against, so whatever publishes a
-pair names both numbers. A full build writes both files under one number (`N == M`).
+pair names both ids. An id is the build date, `YYMMDD`; files built before the ids became dates are numbered 175 to
+259. Either way ids only grow, so the highest is the newest. A full build writes both files under one id (`N == M`).
+The ids are drevo-db's own: they are not Android version codes, and Google Play files an OBB under the version code
+of the APK it was first uploaded with.
 
 Both are SQLite 3 databases with a page size of 1024 bytes, opened read-only by the clients.
 
