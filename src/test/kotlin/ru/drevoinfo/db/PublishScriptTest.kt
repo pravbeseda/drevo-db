@@ -10,7 +10,7 @@ import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import java.io.File
 
-/** Runs publish.sh in a scratch DB/ with a fake `gh` on PATH that records what would be published. */
+/** Runs publish.sh in a scratch DB/ with fake `gh` and `git` on PATH that record what would be published and pushed. */
 class PublishScriptTest {
     @get:Rule
     val temp = TemporaryFolder()
@@ -33,8 +33,13 @@ class PublishScriptTest {
         db.resolve("stat.txt").writeText("37853;01.10.2026;145;0;9000;12")
         history("254/258\t1.10.2026 - Count: 37853 Added: 145 (0%) Patched: 29086 (76%) - 16")
         log = temp.newFolder("log")
-        temp.newFolder("bin").resolve("gh").apply {
+        val bin = temp.newFolder("bin")
+        bin.resolve("gh").apply {
             writeText(FAKE_GH)
+            setExecutable(true)
+        }
+        bin.resolve("git").apply {
+            writeText(FAKE_GIT)
             setExecutable(true)
         }
     }
@@ -45,6 +50,8 @@ class PublishScriptTest {
         answer: String = "y",
         existingTag: Boolean = false,
         mainRelease: String = "",
+        branch: String = "main",
+        historyChanged: Boolean = true,
     ): Run {
         val process =
             ProcessBuilder("bash", script.path)
@@ -55,6 +62,8 @@ class PublishScriptTest {
                     environment()["FAKE_GH_LOG"] = log.path
                     environment()["FAKE_GH_EXISTING_TAG"] = if (existingTag) "1" else ""
                     environment()["FAKE_GH_MAIN_RELEASE"] = mainRelease
+                    environment()["FAKE_GIT_BRANCH"] = branch
+                    environment()["FAKE_GIT_CHANGED"] = if (historyChanged) "1" else ""
                 }.start()
         process.outputStream.bufferedWriter().use { it.write(answer + "\n") }
         val output = process.inputStream.bufferedReader().readText()
@@ -67,6 +76,15 @@ class PublishScriptTest {
             .takeIf { it.exists() }
             ?.readLines()
             .orEmpty()
+
+    private fun gitCalls(): List<String> =
+        log
+            .resolve("git-calls")
+            .takeIf { it.exists() }
+            ?.readLines()
+            .orEmpty()
+
+    private fun committed() = gitCalls().any { it.startsWith("commit ") }
 
     /** The positional arguments after the tag: every `--option` here takes a value. */
     private fun uploadedFiles(): List<String> {
@@ -165,6 +183,44 @@ class PublishScriptTest {
         assertFalse(log.resolve("create-args").exists())
     }
 
+    @Test
+    fun commitsBuildHistoryAndPushesMainAfterPublishing() {
+        val run = run()
+
+        assertEquals(run.output, 0, run.exitCode)
+        val calls = gitCalls()
+        val commit = calls.single { it.startsWith("commit ") }
+        assertTrue(commit, commit.contains("--no-verify"))
+        assertTrue(commit, commit.endsWith("-- build-history.txt"))
+        assertTrue(calls.toString(), calls.indexOf(commit) < calls.indexOf("push origin main"))
+    }
+
+    @Test
+    fun commitsNothingWhenNothingIsPublished() {
+        run(answer = "n")
+
+        assertFalse(committed())
+    }
+
+    @Test
+    fun leavesTheCommitToTheMaintainerOffMain() {
+        val run = run(branch = "feature")
+
+        assertEquals(run.output, 0, run.exitCode)
+        assertFalse(committed())
+        assertFalse(gitCalls().any { it.startsWith("push") })
+        assertTrue(run.output, run.output.contains("build-history.txt"))
+    }
+
+    @Test
+    fun skipsTheCommitWhenBuildHistoryIsUnchanged() {
+        val run = run(historyChanged = false)
+
+        assertEquals(run.output, 0, run.exitCode)
+        assertFalse(committed())
+        assertFalse(gitCalls().any { it.startsWith("push") })
+    }
+
     private fun sha256(text: String): String =
         java.security.MessageDigest
             .getInstance("SHA-256")
@@ -190,6 +246,18 @@ class PublishScriptTest {
                     done
                     exit 0 ;;
                 *) echo "unexpected gh call: ${'$'}*" >&2; exit 1 ;;
+            esac
+            """.trimIndent()
+
+        /** `symbolic-ref` prints FAKE_GIT_BRANCH; `diff --quiet` reports a change when FAKE_GIT_CHANGED is set; every call is recorded. */
+        val FAKE_GIT =
+            """
+            #!/bin/bash
+            echo "${'$'}*" >> "${'$'}FAKE_GH_LOG/git-calls"
+            case "${'$'}1" in
+                symbolic-ref) echo "${'$'}FAKE_GIT_BRANCH" ;;
+                diff) [ -z "${'$'}FAKE_GIT_CHANGED" ] ;;
+                *) true ;;
             esac
             """.trimIndent()
     }

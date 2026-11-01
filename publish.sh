@@ -3,6 +3,7 @@
 # Publishes the newest main + patch pair in DB/ as the GitHub Release db-<main>-<patch>.
 # Run from the repository root (make.sh does it after a build); asks before publishing.
 # main is attached only when no earlier release holds it; SHA256SUMS always covers both files and stat.txt.
+# After publishing it commits build-history.txt and pushes it to main, bypassing the hook that refuses commits there.
 
 set -eo pipefail
 
@@ -73,3 +74,16 @@ case "$CONFIRM" in
 esac
 
 gh release create "$TAG" --title "$TAG" --notes-file "$WORK_DIR/notes.md" "${FILES[@]}"
+
+if git diff --quiet -- build-history.txt; then
+    exit 0
+fi
+BRANCH=$(git symbolic-ref --short HEAD 2>/dev/null || true)
+if [ "$BRANCH" != "main" ]; then
+    echo "build-history.txt is not committed: the checkout is on '$BRANCH', not main. Commit it on main and push." >&2
+    exit 0
+fi
+git commit --no-verify -m "Record build $MAIN/$PATCH in build-history.txt" -- build-history.txt
+# Merged pull requests leave the local main behind origin.
+git pull --rebase --autostash origin main
+git push origin main
