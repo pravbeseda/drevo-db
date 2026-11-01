@@ -11,6 +11,16 @@ set -eo pipefail
 MODE=${1:-""}
 ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
 DB_DIR="$ROOT_DIR/DB"
+# Databases are named after their build date, so a day gets one build.
+BUILD_ID=$(date "+%y%m%d")
+
+for KIND in main patch; do
+    if [ -f "$DB_DIR/$KIND.$BUILD_ID.ru.drevoinfo.obb" ]; then
+        echo "Ошибка: сегодня уже собрана $KIND.$BUILD_ID.ru.drevoinfo.obb."
+        echo "Чтобы пересобрать, удалите из DB/ файлы *.$BUILD_ID.ru.drevoinfo.obb и строку */$BUILD_ID из build-history.txt."
+        exit 1
+    fi
+done
 
 # --- Скачивание данных ---
 echo "Скачивание данных..."
@@ -35,10 +45,8 @@ if [ "$MODE" != "patch" ] && [ "$MODE" != "full" ]; then
     exit 1
 fi
 
-# --- Автоопределение версий ---
-# Находим текущий номер main
+# --- Pick the current databases ---
 CURRENT_MAIN=$(ls "$DB_DIR"/main.*.ru.drevoinfo.obb 2>/dev/null | sed 's/.*main\.\([0-9]*\)\..*/\1/' | sort -n | tail -1 || true)
-# Находим текущий номер patch
 CURRENT_PATCH=$(ls "$DB_DIR"/patch.*.ru.drevoinfo.obb 2>/dev/null | sed 's/.*patch\.\([0-9]*\)\..*/\1/' | sort -n | tail -1 || true)
 
 if [ -z "$CURRENT_MAIN" ]; then
@@ -50,11 +58,9 @@ if [ -z "$CURRENT_PATCH" ]; then
     exit 1
 fi
 
-NEW_PATCH=$((CURRENT_PATCH + 1))
-
 if [ "$MODE" = "patch" ]; then
     MAIN_VERSION=$CURRENT_MAIN
-    PATCH_VERSION=$NEW_PATCH
+    PATCH_VERSION=$BUILD_ID
     echo ""
     echo "=== Режим: PATCH ==="
     echo "Существующая main: main.${CURRENT_MAIN}.ru.drevoinfo.obb"
@@ -62,8 +68,8 @@ if [ "$MODE" = "patch" ]; then
     echo "---"
     echo "Будет создан:      patch.${PATCH_VERSION}.ru.drevoinfo.obb (патч к main.${MAIN_VERSION})"
 else
-    MAIN_VERSION=$NEW_PATCH
-    PATCH_VERSION=$NEW_PATCH
+    MAIN_VERSION=$BUILD_ID
+    PATCH_VERSION=$BUILD_ID
     echo ""
     echo "=== Режим: FULL ==="
     echo "Существующая main: main.${CURRENT_MAIN}.ru.drevoinfo.obb (будет заменена)"

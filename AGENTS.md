@@ -20,10 +20,12 @@ All checked out side by side under `~/Work/drevo/`.
 
 `./make.sh [patch|full]` runs `DB/download.sh` (fetches `https://drevo-info.ru/drevo2.tar.gz` and unpacks it into
 `DB/drevo.txt` and `DB/stat.txt`; what produces that archive on the server is not recorded here),
-picks the next version numbers from the files already in `DB/`, builds the generator with Gradle and runs it from the
-repository root — it reads and writes `./DB/` relative to the working directory. `patch` writes
-`DB/patch.<N>.ru.drevoinfo.obb` against the newest `main`; `full` writes a new `main` and `patch` pair. `DB/` is
-git-ignored except `download.sh`.
+builds the generator with Gradle and runs it from the repository root — it reads and writes `./DB/` relative to the
+working directory. Each database is named after its build date, `YYMMDD`: `patch` writes
+`DB/patch.<YYMMDD>.ru.drevoinfo.obb` against the newest `main`; `full` writes a new `main` and `patch` pair under the
+same date. A second build on the same day is refused before the download, with the files and the `build-history.txt`
+line to delete for a rebuild. `MakeScriptTest` runs it with fakes for the download, Gradle, the generator and
+`publish.sh`. `DB/` is git-ignored except `download.sh`.
 
 `make.sh` ends with `publish.sh`, which can also be run on its own from the repository root. It publishes the
 newest pair as the GitHub Release `db-<main>-<patch>` after a confirmation, with `patch`, `stat.txt`, `SHA256SUMS`
